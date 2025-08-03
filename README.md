@@ -111,21 +111,21 @@ Based on the project's design, I gained experience with the following advanced d
 This project represents a complete flow from high-level control to low-level execution. The flow of a program from start to finish is as follows:
 
 1.  **Configuration and Initialization:**
-    * [cite_start]A host system writes a value to the Device Control Register (`dcr.v`) via `device_control_write_enable` and `device_control_data`, which sets the total `thread_count` for the GPU to execute[cite: 1, 2, 84].
-    * [cite_start]The `dispatch` module receives this `thread_count` and, upon a `start` signal, begins dividing the workload into blocks to be executed by the cores[cite: 6, 8]. [cite_start]It keeps track of how many blocks have been processed[cite: 9].
+    * A host system writes a value to the Device Control Register (`dcr.v`) via `device_control_write_enable` and `device_control_data`, which sets the total `thread_count` for the GPU to execute.
+    * The `dispatch` module receives this `thread_count` and, upon a `start` signal, begins dividing the workload into blocks to be executed by the cores. It keeps track of how many blocks have been processed.
 
 2.  **Dispatch and Core Activation:**
-    * [cite_start]The `dispatch` module identifies an available core and assigns it a block by asserting `core_start`[cite: 17, 23]. [cite_start]It also provides the core with a `core_block_id` and the number of threads in that block (`core_thread_count`)[cite: 18, 19, 24, 25].
+    * The `dispatch` module identifies an available core and assigns it a block by asserting `core_start`. It also provides the core with a `core_block_id` and the number of threads in that block (`core_thread_count`).
 
 3.  **Instruction Pipeline within a Core:**
-    * [cite_start]Each `miniGPU_core` starts its `core_fsm` in the `IDLE` state[cite: 112, 118]. [cite_start]Upon receiving `start`, the FSM transitions to `FETCH`[cite: 120].
-    * [cite_start]The `fetcher` module requests the next instruction from the `program_memory_controller` at the address specified by the Program Counter (`current_pc`)[cite: 107, 108, 111, 163].
-    * [cite_start]Once the instruction is received, the FSM moves to `DECODE`[cite: 109, 121]. [cite_start]The `decoder` module decodes the instruction and generates the necessary control signals[cite: 29, 36, 164].
-    * [cite_start]The core FSM transitions to `REQUEST` and then either `WAIT` (for memory operations) or `EXECUTE` (for ALU operations)[cite: 122, 123, 124].
-    * [cite_start]If a memory operation is required, the `lsu` modules for all threads initiate a request to the `data_memory_controller`[cite: 124, 189, 195]. [cite_start]The `core_fsm` pauses in the `WAIT` state until the `lsu` modules signal that the operation is complete[cite: 124, 129, 193, 198].
-    * [cite_start]After execution, the `core_fsm` updates the `current_pc` and loops back to the `FETCH` state to process the next instruction[cite: 130, 132].
+    * Each `miniGPU_core` starts its `core_fsm` in the `IDLE` state. Upon receiving `start`, the FSM transitions to `FETCH`.
+    * The `fetcher` module requests the next instruction from the `program_memory_controller` at the address specified by the Program Counter (`current_pc`).
+    * Once the instruction is received, the FSM moves to `DECODE`. The `decoder` module decodes the instruction and generates the necessary control signals.
+    * The core FSM transitions to `REQUEST` and then either `WAIT` (for memory operations) or `EXECUTE` (for ALU operations).
+    * If a memory operation is required, the `lsu` modules for all threads initiate a request to the `data_memory_controller`. The `core_fsm` pauses in the `WAIT` state until the `lsu` modules signal that the operation is complete.
+    * After execution, the `core_fsm` updates the `current_pc` and loops back to the `FETCH` state to process the next instruction.
 
 4.  **Task Completion:**
-    * [cite_start]When a core decodes a `RET_OPCODE` instruction [cite: 34][cite_start], the `decoded_ret` signal is asserted[cite: 57]. [cite_start]The `core_fsm` recognizes this and transitions to a `DONE_STATE`[cite: 131].
-    * [cite_start]The `dispatch` module registers that the core is done via the `core_done` signal [cite: 22, 28, 88] [cite_start]and, if more blocks are available, assigns a new one to it[cite: 17, 23].
-    * [cite_start]Once all blocks have been processed and all cores are done, the `dispatch` module asserts the top-level `done` signal[cite: 15, 16, 89], indicating the completion of the entire GPU task.
+    * When a core decodes a `RET_OPCODE` instruction , the `decoded_ret` signal is asserted. The `core_fsm` recognizes this and transitions to a `DONE_STATE`.
+    * The `dispatch` module registers that the core is done via the `core_done` signal and, if more blocks are available, assigns a new one to it.
+    * Once all blocks have been processed and all cores are done, the `dispatch` module asserts the top-level `done` signal, indicating the completion of the entire GPU task.
