@@ -92,5 +92,5 @@ From logic design to hardware:
 ---
 
 ## Post Midterm
-**GPU contains all the required source files(modules) and testbenches, also file named Screenshots contains important screenshots**
+**GPU Folder contains all the required source files(modules) and testbenches, also file named Screenshots contains important screenshots**
 
